@@ -15,9 +15,10 @@ class filecache{
         }
         return true;
     }
-    function cache_exists($key){
+    function cache_exists($key, &$fileChangeTime = false){
         if($fileStat = @stat($this->cacheDir.DIRECTORY_SEPARATOR.$key.'.'.$this->cacheExt)){
-            if((time() - $fileStat['atime']) <= $this->cacheLifetime){
+            $fileChangeTime = $fileStat['mtime'];
+            if((time() - $fileStat['mtime']) <= $this->cacheLifetime){
                 return true;
             }else{
                 $this->cache_unset($key);
@@ -25,10 +26,11 @@ class filecache{
         }
         return false;
     }
-    function cache_get($key){
+    function cache_get($key, &$fileChangeTime = false){
         if($file = @fopen($this->cacheDir.DIRECTORY_SEPARATOR.$key.'.'.$this->cacheExt, 'r')){
             $fileStat = @fstat($file);
-            if($fileStat && (time() - $fileStat['atime']) <= $this->cacheLifetime){
+            $fileChangeTime = $fileStat['mtime'];
+            if($fileStat && (time() - $fileStat['mtime']) <= $this->cacheLifetime){
                 if($data = fread($file, $fileStat['size'])){
                     eval('$data = '.$data.';');
                 }

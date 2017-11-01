@@ -9,6 +9,14 @@ class api{
         $this->filecache = new filecache();
         return true;
     }
+    function setCacheDir($dir){
+        if(!is_writable($dir)){
+            throw new \Exception("Cache directory '".$dir."' is not writable!");
+            return false;
+        }
+        $this->filecache->cacheDir = $dir;
+        return true;
+    }
     function app($app){
         return $this->application($app);
     }
@@ -34,8 +42,15 @@ class api{
         $retorno = false;
         // REALIZAR CONSULTA NO CACHE
         $cacheHash = $func.'-'.md5($this->endpoint.json_encode($params));
-        if($this->enableCache && $this->filecache->cache_exists($cacheHash)){
-            $retorno = $this->filecache->cache_get($cacheHash);
+        if($this->enableCache && $retorno = $this->filecache->cache_get($cacheHash, $cacheChangeTime)){
+            if(isset($retorno['cache_lifetime'])){
+                if((time() - $cacheChangeTime) > $retorno['cache_lifetime']){
+                    $this->filecache->cache_unset($cacheHash);
+                    $retorno = false;
+                }
+            }else{
+                $retorno = false;
+            }
         }
         // REALIZAR CONSULTA NO ENDPOINT
         if(!$retorno){
@@ -49,18 +64,15 @@ class api{
             $params['ext'] = $this->extId;
             $params['func'] = $func;
             if($retorno = $this->request($this->endpoint, $params, $httpCode)){
-                if($httpCode == 200){
-                    // SALVAR CONSULTA EM CACHE
-                    if($this->enableCache){
-                        $this->filecache->cache_set($cacheHash, $retorno);
-                    }
+                $retorno = json_decode($retorno, true);
+                // SALVAR CONSULTA EM CACHE
+                if($this->enableCache && isset($retorno['cache_lifetime']) && $retorno['cache_lifetime']){
+                    $this->filecache->cache_set($cacheHash, $retorno);
                 }
             }
-            
         }
         // RETORNAR O RESULTADO / ERRO
         if($retorno){
-            $retorno = json_decode($retorno, true);
             if(isset($retorno['status']) && $retorno['status'] == 'ok' && isset($retorno['response'])){// OK
                 return $retorno['response'];
             }elseif(isset($retorno['status']) && $retorno['status'] == 'error' && isset($retorno['error']['message'])){
