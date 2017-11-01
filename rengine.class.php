@@ -64,10 +64,14 @@ class api{
             $params['ext'] = $this->extId;
             $params['func'] = $func;
             if($retorno = $this->request($this->endpoint, $params, $httpCode)){
-                $retorno = json_decode($retorno, true);
-                // SALVAR CONSULTA EM CACHE
-                if($this->enableCache && isset($retorno['cache_lifetime']) && $retorno['cache_lifetime']){
-                    $this->filecache->cache_set($cacheHash, $retorno);
+                if($retornoDecoded = json_decode($retorno, true)){
+                    $retorno = $retornoDecoded;
+                    // SALVAR CONSULTA EM CACHE
+                    if($this->enableCache && isset($retorno['cache_lifetime']) && $retorno['cache_lifetime']){
+                        $this->filecache->cache_set($cacheHash, $retorno);
+                    }
+                }else{
+                    throw new \Exception('Invalid Endpoint Result: HTTP Response Code: '.$httpCode.' Message: '.$retorno);
                 }
             }
         }
