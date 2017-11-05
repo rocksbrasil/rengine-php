@@ -24,6 +24,8 @@ class api{
     }
     function application($app){
         $this->appId = $app;
+        $this->modId = null;
+        $this->extId = null;
         return $this;
     }
     function mod($mod){
@@ -31,6 +33,7 @@ class api{
     }
     function module($mod){
         $this->modId = $mod;
+        $this->extId = null;
         return $this;
     }
     function ext($ext){
