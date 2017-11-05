@@ -1,11 +1,13 @@
 <?php
 namespace rengine;
 class api{
-    private $endpoint, $filecache;
-    private $appId, $modId, $extId;
+    private $endpoint, $user, $pass;
+    private $appId, $modId, $extId, $filecache;
     public $enableCache = true;
-    function __construct($endpoint){
+    function __construct($endpoint, $user, $password){
         $this->endpoint = $endpoint;
+        $this->user = $user;
+        $this->pass = $password;
         $this->filecache = new filecache();
         return true;
     }
@@ -32,7 +34,7 @@ class api{
         return $this;
     }
     function ext($ext){
-        return $this->extension($mod);
+        return $this->extension($ext);
     }
     function extension($ext){
         $this->extId = $ext;
@@ -96,6 +98,10 @@ class api{
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,5); 
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5); //timeout in seconds
+        curl_setopt($ch, CURLOPT_USERPWD, $this->user.":".$this->pass);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         $retorno = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
