@@ -92,6 +92,8 @@ class api{
         }
     }
     private function request($endpoint, $data, &$httpCode = 0){
+        $data['user'] = $this->user;
+        $data['pass'] = $this->pass;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 0);
@@ -103,8 +105,6 @@ class api{
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,5); 
         curl_setopt($ch, CURLOPT_TIMEOUT, 5); //timeout in seconds
-        curl_setopt($ch, CURLOPT_USERPWD, $this->user.":".$this->pass);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         $retorno = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
