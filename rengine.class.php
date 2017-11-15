@@ -7,7 +7,7 @@ class api{
     function __construct($endpoint, $user, $password){
         $this->endpoint = $endpoint;
         $this->user = $user;
-        $this->pass = $password;
+        $this->pass = md5($password);
         $this->filecache = new filecache();
         return true;
     }
