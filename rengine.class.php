@@ -78,6 +78,8 @@ class api{
                 }else{
                     throw new \Exception('Invalid Endpoint Result: HTTP Response Code: '.$httpCode.' Message: '.$retorno);
                 }
+            }else{
+                throw new \Exception("Invalid Endpoint: ".$this->endpoint);
             }
         }
         // RETORNAR O RESULTADO / ERRO
