@@ -3,7 +3,8 @@ namespace rengine;
 class api{
     private $endpoint, $user, $pass;
     private $appId, $modId, $extId, $filecache;
-    public $enableCache = true;
+    private $errorFunc, $lastError = Array('code' => 0, 'msg' => null);
+    public $enableCache = true, $internalErrors = false;
     function __construct($endpoint, $user, $password){
         $this->endpoint = $endpoint;
         $this->user = $user;
@@ -76,10 +77,8 @@ class api{
                         $this->filecache->cache_set($cacheHash, $retorno);
                     }
                 }else{
-                    throw new \Exception('Invalid Endpoint Result: HTTP Response Code: '.$httpCode.' Message: '.$retorno);
+                    return $this->throwError(null, 'Invalid Endpoint Result: HTTP Response Code: '.$httpCode.' Message: '.$retorno);
                 }
-            }else{
-                throw new \Exception("Invalid Endpoint: ".$this->endpoint);
             }
         }
         // RETORNAR O RESULTADO / ERRO
@@ -87,10 +86,31 @@ class api{
             if(isset($retorno['status']) && $retorno['status'] == 'ok' && isset($retorno['response'])){// OK
                 return $retorno['response'];
             }elseif(isset($retorno['status']) && $retorno['status'] == 'error' && isset($retorno['error']['message'])){
-                throw new \Exception($retorno['error']['message'], $retorno['error']['code']);
+                return $this->throwError($retorno['error']['code'], $retorno['error']['message']);
             }else{
-                throw new \Exception("fail");
+                return $this->throwError(null, 'fail');
             }
+        }else{
+            return $this->throwError(null, "Invalid Endpoint: ".$this->endpoint);
+        }
+    }
+    private function throwError($code, $message){
+        $lastError = Array('code' => $code, 'msg' => $message);
+        if($this->errorFunc && is_callable($this->errorFunc)){
+            call_user_func($this->errorFunc, $code, $message);
+        }
+        if(!$this->internalErrors){
+            throw new \Exception($message, $code);
+        }
+        return false;
+    }
+    function errorHandler($function){
+        if(is_callable($function)){
+            $this->errorFunc = $function;
+            return true;
+        }else{
+            $this->errorFunc = null;
+            return false;
         }
     }
     private function request($endpoint, $data, &$httpCode = 0){
