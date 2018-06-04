@@ -83,12 +83,16 @@ class api{
         }
         // RETORNAR O RESULTADO / ERRO
         if($retorno){
-            if(isset($retorno['status']) && $retorno['status'] == 'ok' && isset($retorno['response'])){// OK
+            if(isset($retorno['status']) && $retorno['status'] == 'ok' && array_key_exists('response', $retorno)){// OK
                 return $retorno['response'];
             }elseif(isset($retorno['status']) && $retorno['status'] == 'error' && isset($retorno['error']['message'])){
                 return $this->throwError($retorno['error']['code'], $retorno['error']['message']);
             }else{
-                return $this->throwError(null, 'fail');
+                $eMessage = (isset($retorno['error']['message']))? $retorno['error']['message'] : '';
+                $eMessage .= (isset($retorno['status']))? '(Status: '.$retorno['status'].')': '';
+                $eMessage .= (isset($retorno['response']))? 'Response: '.$retorno['response']: '';
+                $eCode = (isset($retorno['error']['code']))? $retorno['error']['code'] : 'n/a';
+                return $this->throwError($eCode, 'Unknown Error['.$eCode.']: '.$eMessage);
             }
         }else{
             return $this->throwError(null, "Invalid Endpoint: ".$this->endpoint);
