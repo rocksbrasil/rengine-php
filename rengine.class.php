@@ -47,7 +47,11 @@ class api{
     function __call($func, $params){
         $retorno = false;
         // REALIZAR CONSULTA NO CACHE
-        $cacheHash = $func.'-'.md5($this->endpoint.json_encode($params));
+        $cacheHash = '';
+        $cacheHash .= ($this->appId)? $this->appId.'-' : '';
+        $cacheHash .= ($this->modId)? $this->modId.'-' : '';
+        $cacheHash .= ($this->extId)? $this->extId.'-' : '';
+        $cacheHash .= $func.'-'.md5($this->endpoint.json_encode($params));
         if($this->enableCache && $retorno = $this->filecache->cache_get($cacheHash, $cacheChangeTime)){
             if(isset($retorno['cache_lifetime'])){
                 if((time() - $cacheChangeTime) > $retorno['cache_lifetime']){
