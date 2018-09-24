@@ -10,6 +10,7 @@ class api{
         $this->user = $user;
         $this->pass = md5($password);
         $this->filecache = new filecache();
+        $this->filecache->cacheDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'rengine'.DIRECTORY_SEPARATOR;
         return true;
     }
     function setCacheDir($dir){
