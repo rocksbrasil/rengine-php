@@ -21,6 +21,9 @@ class api{
         $this->filecache->cacheDir = $dir;
         return true;
     }
+    function clearCache(){
+        return $this->recursiveDelete($this->filecache->cacheDir);
+    }
     function app($app){
         return $this->application($app);
     }
