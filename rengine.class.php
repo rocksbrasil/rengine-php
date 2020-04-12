@@ -22,7 +22,10 @@ class api{
         return true;
     }
     function clearCache(){
-        return $this->recursiveDelete($this->filecache->cacheDir);
+        if(is_dir($this->filecache->cacheDir)){
+            return $this->recursiveDelete($this->filecache->cacheDir);
+        }
+        return true;
     }
     function app($app){
         return $this->application($app);
@@ -143,5 +146,20 @@ class api{
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         return $retorno;
+    }
+    private function recursiveDelete($dir){
+        if (!file_exists($dir)){return true;}
+        if (!is_dir($dir) || is_link($dir)){
+            return @unlink($dir);
+        }
+        foreach (scandir($dir) as $item){
+            if ($item == '.' || $item == '..'){continue;}
+            if (!$this->recursiveDelete($dir . "/" . $item, false)){
+                @chmod($dir . "/" . $item, 0777);
+                if(!$this->recursiveDelete($dir . "/" . $item, false)) return false;
+            };
+        }
+        @chmod($dir, 0777);
+        return @rmdir($dir);
     }
 }
